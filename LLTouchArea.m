@@ -47,6 +47,9 @@
     _tapBlock = nil;
     _longTapBlock = nil;
     _swipeBlock = nil;
+    _pinchBlock = nil;
+    _rotationBlock = nil;
+    _panBlock = nil;
     
     [super dealloc];
 }
