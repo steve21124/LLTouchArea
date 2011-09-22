@@ -259,6 +259,18 @@
         case LLTouchAreaGestureSwipeDown:
             class = [UISwipeGestureRecognizer class];
             break;
+            
+        case LLTouchAreaGesturePinch:
+            class = [UIPinchGestureRecognizer class];
+            break;
+            
+        case LLTouchAreaGestureRotation:
+            class = [UIRotationGestureRecognizer class];
+            break;
+            
+        case LLTouchAreaGesturePan:
+            class = [UIPanGestureRecognizer class];
+            break;
     }
     
     return class;
