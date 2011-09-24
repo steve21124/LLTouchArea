@@ -85,157 +85,93 @@
 
 #pragma mark - Private methods
 
-- (void)setupGestures
+- (LLTouchAreaGesture)areaGestureFromGestureRecognizer:(id)gestureRecognizer
 {
-    UITapGestureRecognizer *tapGesture = nil;
-    UITapGestureRecognizer *doubleTapGesture = nil;
-    UITapGestureRecognizer *tripleTapGesture = nil;
-    UILongPressGestureRecognizer *longTapGesture = nil;
-    UISwipeGestureRecognizer *leftSwipeGesture = nil;
-    UISwipeGestureRecognizer *rightSwipeGesture = nil;
-    UISwipeGestureRecognizer *upSwipeGesture = nil;
-    UISwipeGestureRecognizer *downSwipeGesture = nil;
-    UIPinchGestureRecognizer *pinchGesture = nil;
-    UIRotationGestureRecognizer *rotationGesture = nil;
-    UIPanGestureRecognizer *panGesture = nil;
+    LLTouchAreaGesture areaGesture = 0;
     
+    Class gestureClass = [gestureRecognizer class];
     
-    if ((_supportedGestures & LLTouchAreaGestureTripleTap) == LLTouchAreaGestureTripleTap)
+    if (gestureClass == [UITapGestureRecognizer class])
     {
-        tripleTapGesture = [[UITapGestureRecognizer alloc] init];
-        
-        [tripleTapGesture setDelegate:self];
-        [tripleTapGesture setNumberOfTapsRequired:3];
-        [tripleTapGesture addTarget:self action:@selector(handleTap:)];
-        [self addGestureRecognizer:tripleTapGesture];
-        [_gestures addObject:tripleTapGesture];
-        [tripleTapGesture release];
+        areaGesture = LLTouchAreaGestureTap;
     }
-    
-    if ((_supportedGestures & LLTouchAreaGestureDoubleTap) == LLTouchAreaGestureDoubleTap)
+    else if (gestureClass == [UILongPressGestureRecognizer class])
     {
-        doubleTapGesture = [[UITapGestureRecognizer alloc] init];
-        
-        if (tripleTapGesture != nil)
+        areaGesture = LLTouchAreaGestureLongTap;
+    }
+    else if (gestureClass == [UISwipeGestureRecognizer class])
+    {
+        switch ([gestureRecognizer direction])
         {
-            [doubleTapGesture requireGestureRecognizerToFail:tripleTapGesture];
+            case UISwipeGestureRecognizerDirectionLeft:
+                areaGesture = LLTouchAreaGestureSwipeLeft;
+                break;
+                
+            case UISwipeGestureRecognizerDirectionRight:
+                areaGesture = LLTouchAreaGestureSwipeRight;
+                break;
+                
+            case UISwipeGestureRecognizerDirectionUp:
+                areaGesture = LLTouchAreaGestureSwipeUp;
+                break;
+                
+            case UISwipeGestureRecognizerDirectionDown:
+                areaGesture = LLTouchAreaGestureSwipeDown;
+                break;
         }
-        
-        [doubleTapGesture setDelegate:self];
-        [doubleTapGesture setNumberOfTapsRequired:2];
-        [doubleTapGesture addTarget:self action:@selector(handleTap:)];
-        [self addGestureRecognizer:doubleTapGesture];
-        [_gestures addObject:doubleTapGesture];
-        [doubleTapGesture release];
+    }
+    else if (gestureClass == [UIPinchGestureRecognizer class])
+    {
+        areaGesture = LLTouchAreaGesturePinch;
+    }
+    else if (gestureClass == [UIRotationGestureRecognizer class])
+    {
+        areaGesture = LLTouchAreaGestureRotation;
+    }
+    else if (gestureClass == [UIPanGestureRecognizer class])
+    {
+        areaGesture = LLTouchAreaGesturePan;
     }
     
-    if ((_supportedGestures & LLTouchAreaGestureTap) == LLTouchAreaGestureTap)
+    return areaGesture;
+}
+
+- (SEL)gestureRecognizerActionSELForAreaGesture:(LLTouchAreaGesture)areaGesture
+{
+    SEL action = nil;
+    
+    switch (areaGesture)
     {
-        tapGesture = [[UITapGestureRecognizer alloc] init];
-        
-        if (doubleTapGesture != nil)
-        {
-            [tapGesture requireGestureRecognizerToFail:doubleTapGesture];
-        }
-        
-        [tapGesture setDelegate:self];
-        [tapGesture addTarget:self action:@selector(handleTap:)];
-        [self addGestureRecognizer:tapGesture];
-        [_gestures addObject:tapGesture];
-        [tapGesture release];
+        case LLTouchAreaGestureTap:
+        case LLTouchAreaGestureDoubleTap:
+            action = @selector(handleTap:);
+            break;
+            
+        case LLTouchAreaGestureLongTap:
+            action = @selector(handleLongTap:);
+            break;
+            
+        case LLTouchAreaGestureSwipeLeft:
+        case LLTouchAreaGestureSwipeRight:
+        case LLTouchAreaGestureSwipeUp:
+        case LLTouchAreaGestureSwipeDown:
+            action = @selector(handleSwipe:);
+            break;
+            
+        case LLTouchAreaGesturePinch:
+            action = @selector(handlePinch:);
+            break;
+            
+        case LLTouchAreaGestureRotation:
+            action = @selector(handleRotation:);
+            break;
+            
+        case LLTouchAreaGesturePan:
+            action = @selector(handlePan:);
+            break;
     }
     
-    if ((_supportedGestures & LLTouchAreaGestureLongTap) == LLTouchAreaGestureLongTap)
-    {
-        longTapGesture = [[UILongPressGestureRecognizer alloc] init];
-        
-        [longTapGesture setDelegate:self];
-        [longTapGesture addTarget:self action:@selector(handleLongTap:)];
-        [self addGestureRecognizer:longTapGesture];
-        [_gestures addObject:longTapGesture];
-        [longTapGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGestureSwipeLeft) == LLTouchAreaGestureSwipeLeft)
-    {
-        leftSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
-        
-        [leftSwipeGesture setDelegate:self];
-        [leftSwipeGesture setDirection:UISwipeGestureRecognizerDirectionLeft];
-        [leftSwipeGesture addTarget:self action:@selector(handleSwipe:)];
-        [self addGestureRecognizer:leftSwipeGesture];
-        [_gestures addObject:leftSwipeGesture];
-        [leftSwipeGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGestureSwipeRight) == LLTouchAreaGestureSwipeRight)
-    {
-        rightSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
-        
-        [rightSwipeGesture setDelegate:self];
-        [rightSwipeGesture setDirection:UISwipeGestureRecognizerDirectionRight];
-        [rightSwipeGesture addTarget:self action:@selector(handleSwipe:)];
-        [self addGestureRecognizer:rightSwipeGesture];
-        [_gestures addObject:rightSwipeGesture];
-        [rightSwipeGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGestureSwipeUp) == LLTouchAreaGestureSwipeUp)
-    {
-        upSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
-        
-        [upSwipeGesture setDelegate:self];
-        [upSwipeGesture setDirection:UISwipeGestureRecognizerDirectionUp];
-        [upSwipeGesture addTarget:self action:@selector(handleSwipe:)];
-        [self addGestureRecognizer:upSwipeGesture];
-        [_gestures addObject:upSwipeGesture];
-        [upSwipeGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGestureSwipeDown) == LLTouchAreaGestureSwipeDown)
-    {
-        downSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
-        
-        [downSwipeGesture setDelegate:self];
-        [downSwipeGesture setDirection:UISwipeGestureRecognizerDirectionDown];
-        [downSwipeGesture addTarget:self action:@selector(handleSwipe:)];
-        [self addGestureRecognizer:downSwipeGesture];
-        [_gestures addObject:downSwipeGesture];
-        [downSwipeGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGestureRotation) == LLTouchAreaGestureRotation)
-    {
-        rotationGesture = [[UIRotationGestureRecognizer alloc] init];
-        
-        [rotationGesture setDelegate:self];
-        [rotationGesture addTarget:self action:@selector(handleRotation:)];
-        [self addGestureRecognizer:rotationGesture];
-        [_gestures addObject:rotationGesture];
-        [rotationGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGesturePinch) == LLTouchAreaGesturePinch)
-    {
-        pinchGesture = [[UIPinchGestureRecognizer alloc] init];
-        
-        [pinchGesture setDelegate:self];
-        [pinchGesture addTarget:self action:@selector(handlePinch:)];
-        [self addGestureRecognizer:pinchGesture];
-        [_gestures addObject:pinchGesture];
-        [pinchGesture release];
-    }
-    
-    if ((_supportedGestures & LLTouchAreaGesturePan) == LLTouchAreaGesturePan)
-    {
-        panGesture = [[UIPinchGestureRecognizer alloc] init];
-        
-        [panGesture setDelegate:self];
-        [panGesture addTarget:self action:@selector(handlePan:)];
-        [self addGestureRecognizer:panGesture];
-        [_gestures addObject:panGesture];
-        [panGesture release];
-    }
+    return action;
 }
 
 - (Class)gestureRecognizerClassForAreaGesture:(LLTouchAreaGesture)areaGesture
@@ -248,7 +184,7 @@
         case LLTouchAreaGestureDoubleTap:
             class = [UITapGestureRecognizer class];
             break;
-        
+            
         case LLTouchAreaGestureLongTap:
             class = [UILongPressGestureRecognizer class];
             break;
@@ -276,8 +212,184 @@
     return class;
 }
 
+- (void)setupGestures
+{
+    UITapGestureRecognizer *tapGesture = nil;
+    UITapGestureRecognizer *doubleTapGesture = nil;
+    UITapGestureRecognizer *tripleTapGesture = nil;
+    UITapGestureRecognizer *twoFingersTapGesture = nil;
+    UITapGestureRecognizer *twoFingersDoubleTapGesture = nil;
+    UILongPressGestureRecognizer *longTapGesture = nil;
+    UISwipeGestureRecognizer *leftSwipeGesture = nil;
+    UISwipeGestureRecognizer *rightSwipeGesture = nil;
+    UISwipeGestureRecognizer *upSwipeGesture = nil;
+    UISwipeGestureRecognizer *downSwipeGesture = nil;
+    UIPinchGestureRecognizer *pinchGesture = nil;
+    UIRotationGestureRecognizer *rotationGesture = nil;
+    UIPanGestureRecognizer *panGesture = nil;
+    
+    
+    if ((_supportedGestures & LLTouchAreaGestureTripleTap) == LLTouchAreaGestureTripleTap)
+    {
+        tripleTapGesture = [[UITapGestureRecognizer alloc] init];
+        [tripleTapGesture setNumberOfTapsRequired:3];
+        
+        [self addGestureRecognizer:tripleTapGesture];
+        
+        [tripleTapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureDoubleTap) == LLTouchAreaGestureDoubleTap)
+    {
+        doubleTapGesture = [[UITapGestureRecognizer alloc] init];
+        [doubleTapGesture setNumberOfTapsRequired:2];
+        
+        if (tripleTapGesture != nil)
+        {
+            [doubleTapGesture requireGestureRecognizerToFail:tripleTapGesture];
+        }
+        
+        [self addGestureRecognizer:doubleTapGesture];
+        
+        [doubleTapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureTap) == LLTouchAreaGestureTap)
+    {
+        tapGesture = [[UITapGestureRecognizer alloc] init];
+        
+        if (doubleTapGesture != nil)
+        {
+            [tapGesture requireGestureRecognizerToFail:doubleTapGesture];
+        }
+        
+        [self addGestureRecognizer:tapGesture];
+        
+        [tapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureTwoFingersDoubleTap) == LLTouchAreaGestureTwoFingersDoubleTap)
+    {
+        twoFingersDoubleTapGesture = [[UITapGestureRecognizer alloc] init];
+        [twoFingersDoubleTapGesture setNumberOfTouchesRequired:2];
+        [twoFingersDoubleTapGesture setNumberOfTapsRequired:2];
+        
+        [self addGestureRecognizer:twoFingersDoubleTapGesture];
+        
+        [twoFingersDoubleTapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureTwoFingersTap) == LLTouchAreaGestureTwoFingersTap)
+    {
+        twoFingersTapGesture = [[UITapGestureRecognizer alloc] init];
+        [twoFingersTapGesture setNumberOfTouchesRequired:2];
+        
+        if (twoFingersDoubleTapGesture != nil)
+        {
+            [twoFingersTapGesture requireGestureRecognizerToFail:twoFingersDoubleTapGesture];
+        }
+        
+        [self addGestureRecognizer:twoFingersTapGesture];
+        
+        [twoFingersTapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureLongTap) == LLTouchAreaGestureLongTap)
+    {
+        longTapGesture = [[UILongPressGestureRecognizer alloc] init];
+        
+        [self addGestureRecognizer:longTapGesture];
+        
+        [longTapGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureSwipeLeft) == LLTouchAreaGestureSwipeLeft)
+    {
+        leftSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
+        
+        [leftSwipeGesture setDirection:UISwipeGestureRecognizerDirectionLeft];
+        
+        [self addGestureRecognizer:leftSwipeGesture];
+        
+        [leftSwipeGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureSwipeRight) == LLTouchAreaGestureSwipeRight)
+    {
+        rightSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
+        
+        [rightSwipeGesture setDirection:UISwipeGestureRecognizerDirectionRight];
+        
+        [self addGestureRecognizer:rightSwipeGesture];
+        
+        [rightSwipeGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureSwipeUp) == LLTouchAreaGestureSwipeUp)
+    {
+        upSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
+        
+        [upSwipeGesture setDirection:UISwipeGestureRecognizerDirectionUp];
+        
+        [self addGestureRecognizer:upSwipeGesture];
+        
+        [upSwipeGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureSwipeDown) == LLTouchAreaGestureSwipeDown)
+    {
+        downSwipeGesture = [[UISwipeGestureRecognizer alloc] init];
+        
+        [downSwipeGesture setDirection:UISwipeGestureRecognizerDirectionDown];
+        
+        [self addGestureRecognizer:downSwipeGesture];
+        
+        [downSwipeGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGestureRotation) == LLTouchAreaGestureRotation)
+    {
+        rotationGesture = [[UIRotationGestureRecognizer alloc] init];
+        
+        [self addGestureRecognizer:rotationGesture];
+        
+        [rotationGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGesturePinch) == LLTouchAreaGesturePinch)
+    {
+        pinchGesture = [[UIPinchGestureRecognizer alloc] init];
+        
+        [self addGestureRecognizer:pinchGesture];
+        
+        [pinchGesture release];
+    }
+    
+    if ((_supportedGestures & LLTouchAreaGesturePan) == LLTouchAreaGesturePan)
+    {
+        panGesture = [[UIPinchGestureRecognizer alloc] init];
+        
+        [self addGestureRecognizer:panGesture];
+        
+        [panGesture release];
+    }
+}
+
 
 #pragma mark - Public methods
+
+- (void)addGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+{
+    [gestureRecognizer setDelegate:self];
+    
+    LLTouchAreaGesture areaGesture = [self areaGestureFromGestureRecognizer:gestureRecognizer];
+    SEL action = [self gestureRecognizerActionSELForAreaGesture:areaGesture];
+    
+    [gestureRecognizer addTarget:self action:action];
+    
+    [_gestures addObject:gestureRecognizer];
+    [super addGestureRecognizer:gestureRecognizer];
+}
 
 - (NSArray *)gesturesForTouchAreaGesture:(LLTouchAreaGesture)areaGesture
 {

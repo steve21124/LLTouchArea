@@ -20,14 +20,16 @@ enum
     LLTouchAreaGestureTap = 1 << 0,
     LLTouchAreaGestureDoubleTap = 1 << 1,
     LLTouchAreaGestureTripleTap = 1 << 2,
-    LLTouchAreaGestureLongTap = 1 << 3,
-    LLTouchAreaGestureSwipeLeft = 1 << 4,
-    LLTouchAreaGestureSwipeRight = 1 << 5,
-    LLTouchAreaGestureSwipeUp = 1 << 6,
-    LLTouchAreaGestureSwipeDown = 1 << 7,
-    LLTouchAreaGesturePinch = 1 << 8,
-    LLTouchAreaGestureRotation = 1 << 9,
-    LLTouchAreaGesturePan = 1 << 10
+    LLTouchAreaGestureTwoFingersTap = 1 << 3,
+    LLTouchAreaGestureTwoFingersDoubleTap = 1 << 4,
+    LLTouchAreaGestureLongTap = 1 << 5,
+    LLTouchAreaGestureSwipeLeft = 1 << 6,
+    LLTouchAreaGestureSwipeRight = 1 << 7,
+    LLTouchAreaGestureSwipeUp = 1 << 8,
+    LLTouchAreaGestureSwipeDown = 1 << 9,
+    LLTouchAreaGesturePinch = 1 << 10,
+    LLTouchAreaGestureRotation = 1 << 11,
+    LLTouchAreaGesturePan = 1 << 12
 };
 typedef NSUInteger LLTouchAreaGesture;
 
@@ -58,7 +60,6 @@ typedef NSUInteger LLTouchAreaGesture;
  When you change this property, all previous gesture recognizers will be removed.
  */
 @property (nonatomic, assign) LLTouchAreaGesture supportedGestures;
-
 
 /** Returns an array with UIGestureRecognizer objects for the specified LLTouchAreaGesture */
 - (NSArray *)gesturesForTouchAreaGesture:(LLTouchAreaGesture)areaGesture;
