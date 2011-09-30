@@ -367,7 +367,7 @@
     
     if ((_supportedGestures & LLTouchAreaGesturePan) == LLTouchAreaGesturePan)
     {
-        panGesture = [[UIPinchGestureRecognizer alloc] init];
+        panGesture = [[UIPanGestureRecognizer alloc] init];
         
         [self addGestureRecognizer:panGesture];
         
