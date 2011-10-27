@@ -71,9 +71,10 @@
 {
     if ([keyPath isEqualToString:@"supportedGestures"])
     {
+        __block id blockSelf = self;
         [_gestures enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             
-            [self removeGestureRecognizer:obj];
+            [blockSelf removeGestureRecognizer:obj];
         }];
         
         [_gestures removeAllObjects];
